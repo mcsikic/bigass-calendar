@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+<title>BIG ASS CALENDAR ✳</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#f5efdf">
+<style>
+  :root{
+    --paper:#f5efdf; --ink:#2b2620; --line:#d8cfb8;
+    --m:#fff3a3; --i:#d3f2c2; --both:#ffd1e0; --info:#e9e6df;
+    --hard:#e0342b; --zoom:1;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+  html,body{margin:0; background:var(--paper); color:var(--ink);
+    font-family:"Marker Felt","Chalkboard SE","Comic Sans MS",cursive;}
+  /* ---------- header ---------- */
+  header{position:sticky; top:0; z-index:40; background:var(--paper);
+    border-bottom:3px solid var(--ink); padding:10px 14px 8px; display:none;}
+  h1{margin:0; font-size:clamp(20px,4.5vw,34px); letter-spacing:1px;}
+  h1 .ass{color:var(--hard);}
+  #tag{margin:2px 0 6px; font-size:14px; opacity:.75;}
+  #bar{display:flex; gap:8px; flex-wrap:wrap; align-items:center;}
+  button{font-family:inherit; font-size:15px; border:2px solid var(--ink);
+    background:#fff; color:var(--ink); border-radius:10px; padding:5px 12px;
+    box-shadow:2px 2px 0 var(--ink); cursor:pointer;}
+  button:active{transform:translate(2px,2px); box-shadow:none;}
+  #updated{font-size:12px; opacity:.6; margin-left:auto;}
+  /* ---------- legend ---------- */
+  .chip{display:inline-block; padding:1px 8px; border-radius:6px; font-size:12px; border:1.5px solid var(--ink);}
+  /* ---------- calendar ---------- */
+  #wrap{overflow:auto; -webkit-overflow-scrolling:touch;}
+  #grid{display:flex; gap:10px; padding:14px; transform:scale(var(--zoom));
+    transform-origin:0 0; width:max-content;}
+  .month{width:230px; flex:0 0 auto;}
+  .mname{font-size:19px; text-transform:uppercase; letter-spacing:2px;
+    border-bottom:3px solid var(--ink); margin-bottom:4px; padding:2px 4px;
+    position:sticky; top:0;}
+  .day{display:flex; gap:6px; border-bottom:1.5px solid var(--line);
+    min-height:30px; padding:2px 2px 3px; align-items:flex-start;}
+  .day.wkend{background:rgba(0,0,0,.035);}
+  .dnum{width:34px; flex:0 0 auto; font-size:13px; opacity:.65; padding-top:3px;}
+  .dnum b{font-size:15px; opacity:1;}
+  .day.today{border:3px solid var(--hard); border-radius:55% 45% 50% 48%/60% 50% 55% 45%;
+    background:#fff8ef; min-height:44px;}
+  .pits{display:flex; flex-direction:column; gap:4px; flex:1; padding:2px 0;}
+  /* ---------- post-its ---------- */
+  .pit{position:relative; font-size:13.5px; line-height:1.15; padding:7px 8px 8px;
+    border-radius:2px; box-shadow:2px 3px 4px rgba(0,0,0,.22); cursor:pointer;
+    word-break:break-word;}
+  .pit::before{ /* tape */
+    content:""; position:absolute; top:-6px; left:50%; width:34px; height:11px;
+    transform:translateX(-50%) rotate(-2deg); background:rgba(255,255,255,.55);
+    border:1px solid rgba(0,0,0,.08);}
+  .pit.M{background:var(--m);} .pit.I{background:var(--i);}
+  .pit.both{background:var(--both);} .pit.info{background:var(--info); opacity:.85;}
+  .pit.hard::before{background:var(--hard); opacity:.85;}
+  .pit.hard{font-weight:700;}
+  .pit.done{filter:grayscale(1); opacity:.55; text-decoration:line-through;}
+  .pit.done::after{content:"✓"; position:absolute; right:4px; bottom:2px;
+    color:#1d7a1d; font-size:18px; text-decoration:none;}
+  /* ---------- sheet ---------- */
+  #veil{position:fixed; inset:0; background:rgba(43,38,32,.45); z-index:60; display:none;}
+  #sheet{position:fixed; left:50%; bottom:0; transform:translateX(-50%);
+    width:min(480px,94vw); z-index:61; display:none; padding:0 0 18px;}
+  #card{background:var(--i); border-radius:3px; padding:20px 18px 16px;
+    box-shadow:0 -4px 22px rgba(0,0,0,.35); transform:rotate(-.6deg);}
+  #card.M{background:var(--m);} #card.both{background:var(--both);} #card.info{background:var(--info);}
+  #card h2{margin:0 0 6px; font-size:22px;}
+  #card .row{margin:6px 0; font-size:16px;}
+  #card .do{background:rgba(255,255,255,.6); border-left:4px solid var(--ink);
+    padding:8px 10px; border-radius:2px;}
+  #card .meta{font-size:13px; opacity:.7;}
+  #card .btns{display:flex; gap:10px; margin-top:14px;}
+  /* ---------- modal (bell / install) ---------- */
+  #modal{position:fixed; inset:0; z-index:70; background:rgba(43,38,32,.5);
+    display:none; align-items:center; justify-content:center; padding:18px;}
+  #mbox{background:#fffdf6; border:3px solid var(--ink); border-radius:14px;
+    max-width:430px; padding:20px; box-shadow:6px 6px 0 var(--ink); font-size:16px;}
+  #mbox h3{margin:0 0 8px;}
+  #mbox ol{padding-left:20px; margin:8px 0;}
+  #mbox textarea{width:100%; height:90px; font-size:11px; margin-top:8px;}
+  /* ---------- lock screen ---------- */
+  #lock{display:flex; align-items:center; justify-content:center;
+    min-height:100vh; padding:18px;}
+  #lockbox{background:var(--m); border-radius:3px; padding:28px 24px 22px;
+    box-shadow:4px 5px 8px rgba(0,0,0,.25); transform:rotate(-1.2deg);
+    max-width:380px; width:100%; text-align:center; position:relative;}
+  #lockbox::before{content:""; position:absolute; top:-8px; left:50%; width:50px; height:14px;
+    transform:translateX(-50%) rotate(1deg); background:rgba(255,255,255,.55);
+    border:1px solid rgba(0,0,0,.08);}
+  #lockbox h2{margin:0 0 10px; font-size:24px;}
+  #lockbox p{margin:6px 0; font-size:15px; opacity:.8;}
+  #lockbox input{font-family:inherit; font-size:18px; border:2px solid var(--ink);
+    border-radius:8px; padding:8px 12px; width:100%; margin:12px 0 8px;
+    text-align:center; background:#fff;}
+  #lockbox .err{color:var(--hard); font-size:14px; min-height:20px;}
+  footer{padding:18px; font-size:12px; opacity:.55; text-align:center;}
+</style>
+</head>
+<body>
+
+<!-- lock screen (post-it style) -->
+<div id="lock">
+  <div id="lockbox">
+    <h2>the wall is locked 🔒</h2>
+    <p>passphrase?</p>
+    <input type="password" id="pw" placeholder="type it here" autocomplete="off">
+    <button id="btnUnlock" style="width:100%;margin-top:4px;">open the wall</button>
+    <div class="err" id="lockErr"></div>
+  </div>
+</div>
+
+<header>
+  <h1>THE BIG <span class="ass">ASS</span> CALENDAR <span style="font-size:.6em">✳ M+I</span></h1>
+  <div id="tag">loading the year…</div>
+  <div id="bar">
+    <button id="btnToday">today 🎯</button>
+    <button id="btnZoomOut">−</button>
+    <button id="btnZoomIn">+</button>
+    <button id="btnBell">🔔</button>
+    <button id="btnReload">↻</button>
+    <span class="chip" style="background:var(--m)">Marco</span>
+    <span class="chip" style="background:var(--i)">Inna</span>
+    <span class="chip" style="background:var(--both)">together</span>
+    <span class="chip" style="background:#fff;border-color:var(--hard);color:var(--hard)">✱ hard</span>
+    <span id="updated"></span>
+  </div>
+</header>
+
+<div id="wrap"><div id="grid"></div></div>
+
+<div id="veil" onclick="closeSheet()"></div>
+<div id="sheet"><div id="card"></div></div>
+<div id="modal" onclick="if(event.target===this)closeModal()"><div id="mbox"></div></div>
+
+<footer>the wall is encrypted — only the passphrase opens it · BAC v1</footer>
+
+<script>
+"use strict";
+const TAGS = [
+  "months at a glance. zero office energy.",
+  "the wall knows. ask the wall.",
+  "post-its don't nag. they just sit there. loudly.",
+  "one year, one sheet, two humans.",
+  "future you says thanks."
+];
+const MONTH_NAMES=["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+let DATA=null, ZOOM=1;
+
+/* ---------- crypto helpers (WebCrypto) ---------- */
+const ITER = 300000;
+const KEY_STORE = "bac_derived_key";
+const SALT_STORE = "bac_salt";
+
+function b64decode(s){ return Uint8Array.from(atob(s), c=>c.charCodeAt(0)); }
+
+async function deriveKey(passphrase, salt){
+  const enc = new TextEncoder();
+  const base = await crypto.subtle.importKey("raw", enc.encode(passphrase), "PBKDF2", false, ["deriveKey"]);
+  return crypto.subtle.deriveKey(
+    {name:"PBKDF2", salt, iterations:ITER, hash:"SHA-256"},
+    base,
+    {name:"AES-GCM", length:256},
+    true,  /* extractable so we can export to localStorage */
+    ["decrypt"]
+  );
+}
+
+async function decryptData(envelope, cryptoKey){
+  const iv = b64decode(envelope.iv);
+  const ct = b64decode(envelope.ct);
+  const plain = await crypto.subtle.decrypt({name:"AES-GCM", iv}, cryptoKey, ct);
+  return JSON.parse(new TextDecoder().decode(plain));
+}
+
+async function storeKey(cryptoKey, salt){
+  const raw = await crypto.subtle.exportKey("raw", cryptoKey);
+  localStorage.setItem(KEY_STORE, btoa(String.fromCharCode(...new Uint8Array(raw))));
+  localStorage.setItem(SALT_STORE, btoa(String.fromCharCode(...salt)));
+}
+
+async function loadStoredKey(){
+  const rawB64 = localStorage.getItem(KEY_STORE);
+  if(!rawB64) return null;
+  const raw = Uint8Array.from(atob(rawB64), c=>c.charCodeAt(0));
+  return crypto.subtle.importKey("raw", raw, {name:"AES-GCM"}, false, ["decrypt"]);
+}
+
+/* ---------- fetch + decrypt ---------- */
+async function fetchEncrypted(){
+  const r = await fetch("data/todos.enc.json?v="+Date.now(), {cache:"no-store"});
+  return r.json();
+}
+
+async function unlockWithPassphrase(passphrase){
+  const envelope = await fetchEncrypted();
+  const salt = b64decode(envelope.salt);
+  const key = await deriveKey(passphrase, salt);
+  const data = await decryptData(envelope, key);   // throws on wrong passphrase
+  await storeKey(key, salt);
+  return data;
+}
+
+async function unlockWithStoredKey(){
+  const key = await loadStoredKey();
+  if(!key) return null;
+  const envelope = await fetchEncrypted();
+  const data = await decryptData(envelope, key);
+  return data;
+}
+
+/* ---------- boot ---------- */
+async function boot(){
+  // try stored key first (device already unlocked once)
+  try{
+    const data = await unlockWithStoredKey();
+    if(data){ showWall(data); return; }
+  }catch(e){
+    // stored key failed (passphrase rotated?) — show lock
+    localStorage.removeItem(KEY_STORE);
+    localStorage.removeItem(SALT_STORE);
+  }
+  showLock();
+}
+
+function showLock(){
+  document.getElementById("lock").style.display="flex";
+  document.querySelector("header").style.display="none";
+  document.getElementById("wrap").style.display="none";
+  document.querySelector("footer").style.display="none";
+  document.getElementById("pw").focus();
+}
+
+function showWall(data){
+  document.getElementById("lock").style.display="none";
+  document.querySelector("header").style.display="block";
+  document.getElementById("wrap").style.display="block";
+  document.querySelector("footer").style.display="block";
+  DATA = data;
+  document.getElementById("updated").textContent="updated "+(DATA.updated||"?").slice(0,16).replace("T"," ");
+  document.getElementById("tag").textContent=TAGS[new Date().getDate()%TAGS.length];
+  render();
+}
+
+document.getElementById("btnUnlock").onclick = async ()=>{
+  const pw = document.getElementById("pw").value;
+  if(!pw) return;
+  const err = document.getElementById("lockErr");
+  err.textContent = "decrypting…";
+  try{
+    const data = await unlockWithPassphrase(pw);
+    showWall(data);
+  }catch(e){
+    err.textContent = "nope — wrong passphrase. try again.";
+    document.getElementById("pw").value="";
+    document.getElementById("pw").focus();
+  }
+};
+document.getElementById("pw").addEventListener("keydown", e=>{
+  if(e.key==="Enter") document.getElementById("btnUnlock").click();
+});
+
+/* ---------- render ---------- */
+function hash(s){let h=0; for(const c of s){h=((h<<5)-h+c.charCodeAt(0))|0;} return Math.abs(h);}
+function todayStr(){const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;}
+
+function render(){
+  const grid=document.getElementById("grid"); grid.innerHTML="";
+  const [sy,sm]=(DATA.start_month||"2026-08").split("-").map(Number);
+  const byDate={};
+  for(const it of DATA.items){(byDate[it.date]=byDate[it.date]||[]).push(it);}
+  const tod=todayStr();
+  for(let k=0;k<(DATA.months||12);k++){
+    const y=sy+Math.floor((sm-1+k)/12), m=(sm-1+k)%12+1;
+    const days=new Date(y,m,0).getDate();
+    const mdiv=document.createElement("div"); mdiv.className="month";
+    mdiv.innerHTML=`<div class="mname">${MONTH_NAMES[m-1]} <span style="opacity:.5;font-size:.7em">${y}</span></div>`;
+    for(let d=1;d<=days;d++){
+      const ds=`${y}-${String(m).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+      const dow=new Date(y,m-1,d).getDay();
+      const cell=document.createElement("div");
+      cell.className="day"+(dow===0||dow===6?" wkend":"")+(ds===tod?" today":"");
+      cell.id="d-"+ds;
+      cell.innerHTML=`<div class="dnum"><b>${d}</b> ${"SMTWTFS"[dow]}</div><div class="pits"></div>`;
+      const pits=cell.querySelector(".pits");
+      for(const it of (byDate[ds]||[])){
+        const p=document.createElement("div");
+        p.className=`pit ${it.owner}${it.hard?" hard":""}${it.done?" done":""}`;
+        p.style.transform=`rotate(${(hash(it.id)%7)-3}deg)`;
+        p.textContent=(it.hard?"✱ ":"")+it.title;
+        p.setAttribute("role","button"); p.tabIndex=0;
+        p.onclick=()=>openSheet(it);
+        p.onkeydown=(e)=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openSheet(it);}};
+        pits.appendChild(p);
+      }
+      mdiv.appendChild(cell);
+    }
+    grid.appendChild(mdiv);
+  }
+}
+
+/* ---------- detail sheet ---------- */
+function openSheet(it){
+  const c=document.getElementById("card");
+  c.className=it.owner;
+  c.innerHTML=`
+    <h2>${it.hard?"✱ ":""}${it.title}</h2>
+    <div class="row meta">${it.date} · ${({M:"Marco",I:"Inna",both:"both of you",info:"FYI — it just happens"})[it.owner]}${it.hard?" · HARD deadline":""}</div>
+    ${it.action?`<div class="row do">DO: ${it.action}${it.minutes?` — <b>${it.minutes} min</b>`:""}</div>`:""}
+    ${it.stakes?`<div class="row meta">why it matters: ${it.stakes}</div>`:""}
+    ${it.blocked_by?`<div class="row meta">⛓ waits for: ${it.blocked_by}</div>`:""}
+    <div class="btns">
+      ${it.owner!=="info"?`<button onclick='markDone(${JSON.stringify(it.id)},${JSON.stringify(it.title)})'>DONE ✅</button>`:""}
+      <button onclick="closeSheet()">close</button>
+    </div>`;
+  document.getElementById("veil").style.display="block";
+  document.getElementById("sheet").style.display="block";
+}
+function closeSheet(){
+  document.getElementById("veil").style.display="none";
+  document.getElementById("sheet").style.display="none";
+}
+async function markDone(id,title){
+  const msg=`DONE ✅ ${id} — ${title}`;
+  try{
+    if(navigator.share){await navigator.share({text:msg});}
+    else{await navigator.clipboard.writeText(msg); alert("copied — send it to Marco:\n"+msg);}
+  }catch(e){/* user cancelled share */}
+  closeSheet();
+}
+
+/* ---------- controls ---------- */
+document.getElementById("btnToday").onclick=()=>{
+  const el=document.getElementById("d-"+todayStr());
+  if(el) el.scrollIntoView({behavior:"smooth",block:"center",inline:"center"});
+};
+document.getElementById("btnZoomIn").onclick=()=>{ZOOM=Math.min(2,ZOOM+0.15); applyZoom();};
+document.getElementById("btnZoomOut").onclick=()=>{ZOOM=Math.max(0.4,ZOOM-0.15); applyZoom();};
+function applyZoom(){document.documentElement.style.setProperty("--zoom",ZOOM);}
+document.getElementById("btnReload").onclick=()=>location.reload();
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)boot();});
+
+/* ---------- notifications ---------- */
+const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent);
+const standalone=window.matchMedia("(display-mode: standalone)").matches||window.navigator.standalone===true;
+
+document.getElementById("btnBell").onclick=async ()=>{
+  const box=document.getElementById("mbox");
+  if(isIOS&&!standalone){
+    box.innerHTML=`<h3>one tiny Apple ritual 🔔</h3>
+      <p>iPhone only allows notifications for web apps living on the Home Screen
+      (<a href="https://webkit.org/blog/13878/web-push-for-web-apps-on-ios-and-ipados/">Apple's rule</a>, not ours).</p>
+      <ol><li>tap <b>Share</b> (square + arrow)</li>
+      <li><b>Add to Home Screen</b></li>
+      <li>open the ✳ icon → tap 🔔 again → allow</li></ol>
+      <p>after that: post-its can ping you. 30 seconds, once, forever.</p>
+      <button onclick="closeModal()">ok ok</button>`;
+    openModal(); return;
+  }
+  if(!("serviceWorker" in navigator)||!("PushManager" in window)){
+    box.innerHTML=`<h3>😕</h3><p>this browser can't do web push. open the app from its Home-Screen icon (iPhone) or use Safari/Chrome.</p><button onclick="closeModal()">close</button>`;
+    openModal(); return;
+  }
+  try{
+    const perm=await Notification.requestPermission();
+    if(perm!=="granted"){throw new Error("permission not granted");}
+    const keyTxt=(await (await fetch("data/vapid_public.txt?v="+Date.now())).text()).trim();
+    if(!keyTxt||keyTxt.startsWith("<")){throw new Error("VAPID key not generated yet — run scripts/gen_vapid.py in the app session");}
+    const reg=await navigator.serviceWorker.ready;
+    const sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64ToU8(keyTxt)});
+    const payload=JSON.stringify(sub.toJSON(),null,1);
+    box.innerHTML=`<h3>subscribed 🎉 — last step</h3>
+      <p>send this blob to Marco (one time). his next Claude session files it and the pings begin.</p>
+      <textarea readonly>${payload}</textarea>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button id="shareSub">send to Marco 📤</button>
+        <button onclick="closeModal()">done</button></div>`;
+    openModal();
+    document.getElementById("shareSub").onclick=async()=>{
+      const txt="BAC subscription:\n"+payload;
+      if(navigator.share){try{await navigator.share({text:txt});}catch(e){}}
+      else{await navigator.clipboard.writeText(txt); alert("copied ✓");}
+    };
+  }catch(e){
+    box.innerHTML=`<h3>hmm.</h3><p>${e.message}</p><button onclick="closeModal()">close</button>`;
+    openModal();
+  }
+};
+function openModal(){document.getElementById("modal").style.display="flex";}
+function closeModal(){document.getElementById("modal").style.display="none";}
+function b64ToU8(s){const p="=".repeat((4-s.length%4)%4);
+  const b=atob((s+p).replace(/-/g,"+").replace(/_/g,"/"));
+  return Uint8Array.from([...b].map(c=>c.charCodeAt(0)));}
+
+/* ---------- boot ---------- */
+if("serviceWorker" in navigator){
+  navigator.serviceWorker.register("sw.js").catch(()=>{});
+}
+boot();
+</script>
+</body>
+</html>

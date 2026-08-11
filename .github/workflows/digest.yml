@@ -1,0 +1,26 @@
+# BAC morning digest via GitHub Actions — TEMPLATE, inactive until this folder
+# becomes a GitHub repo AND two Secrets are set:
+#   VAPID_PRIVATE_PEM   — contents of data/vapid_private.pem
+#   SUBSCRIPTIONS_JSON  — contents of data/subscriptions.json
+# (both are gitignored on purpose — they travel as Secrets, never as files)
+#
+# Cron is UTC: 07:30 UTC = 08:30 Lisbon in summer (WEST), 07:30 in winter (WET).
+# Adjust seasonally or accept the drift.
+name: bac-digest
+on:
+  schedule:
+    - cron: "30 7 * * *"
+  workflow_dispatch: {}
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -r requirements.txt
+      - name: restore secrets
+        run: |
+          printf '%s' "${{ secrets.VAPID_PRIVATE_PEM }}" > data/vapid_private.pem
+          printf '%s' "${{ secrets.SUBSCRIPTIONS_JSON }}" > data/subscriptions.json
+      - run: python3 scripts/send_push.py --digest

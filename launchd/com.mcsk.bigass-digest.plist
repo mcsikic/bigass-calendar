@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <!-- Morning post-it digest, 08:30. CAVEAT: fires only if the Mac is awake.
+       Install:  cp launchd/com.mcsk.bigass-digest.plist ~/Library/LaunchAgents/
+                 launchctl load ~/Library/LaunchAgents/com.mcsk.bigass-digest.plist -->
+  <key>Label</key><string>com.mcsk.bigass-digest</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/usr/bin/python3</string>
+    <string>/Users/mcsk/_MCSK/_DOCs/_claude/_bigass_calendar/scripts/send_push.py</string>
+    <string>--digest</string>
+  </array>
+  <key>StartCalendarInterval</key>
+  <dict><key>Hour</key><integer>8</integer><key>Minute</key><integer>30</integer></dict>
+  <key>StandardOutPath</key><string>/tmp/bigass-digest.log</string>
+  <key>StandardErrorPath</key><string>/tmp/bigass-digest.log</string>
+</dict>
+</plist>
