@@ -87,8 +87,15 @@ Push sending works from Marco's Mac regardless of hosting (pywebpush POSTs to Ap
 - Viewing via plain link works in any browser, no install.
 - iOS 18.4+ adds Declarative Web Push (no SW needed) — [webkit.org/blog/16535](https://webkit.org/blog/16535/meet-declarative-web-push/). We ship classic SW push (works 16.4+); declarative = later option.
 
+## Status 2026-08-12 — wall live, publishing automated
+- **LIVE with 47 items**, verified by downloading `todos.enc.json` from Pages and decrypting it (not just by pushing). Remote is SSH `git@github.com:mcsikic/bigass-calendar.git`.
+- **Publishing is unattended:** passphrase in the Keychain, `scripts/deploy.sh` runs with no prompt. Hourly `com.mcsk.bigass-sync` + 08:30 `com.mcsk.bigass-digest`, both loaded, both exit 0. Worst-case staleness ≤1 h.
+- **Content:** 47 items — 3 trips as bands, 3 birthdays, 13 PT national holidays + Carnaval, the full official Villora 2026-27 calendar, the 12 Aug eclipse. Every item carries a plain-language `note`.
+- **Open:** ① check the mailbox Villora actually writes to (13 Aug post-it) — school mail never reaches the Gmail connected to Claude, and whether a payment is due before September is UNVERIFIED. ② Villora camping 4–5 Sep falls inside the Paris trip (return 5 Sep) — decide before 20 Aug. ③ Oct half-term 26–30 sits inside Marco's Riyadh week 25–29.
+- **Push payload text stays visible on a locked phone** — keep amounts out of titles.
+
 ## Status 2026-08-11 (PM — push session)
-- **LIVE:** https://mcsikic.github.io/bigass-calendar/ (ciphertext only; remote is SSH `git@github.com:mcsikic/bigass-calendar.git`).
+- Site first went live (ciphertext only).
 - Built: app, SW, manifest, icons, seed data (18 items from ledger backfill, sources in `../_financial advisor/deadline_system/ledger.csv`), all scripts, launchd + Actions templates.
 - **Push: WORKING to both phones.** VAPID keys generated; `data/subscriptions.json` holds `marco` + `inna` (Apple endpoints, both key pairs validated 65B/16B); `send_push.py --test` delivered 2/2.
 - **Morning digest: INSTALLED + LOADED.** `~/Library/LaunchAgents/com.mcsk.bigass-digest.plist`, 08:30 daily, log `/tmp/bigass-digest.log`. Verified `launchctl list` → `com.mcsk.bigass-digest`, exit 0. Fires `--digest`, which sends **only if something is due that day**.
