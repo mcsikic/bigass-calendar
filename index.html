@@ -60,6 +60,7 @@
   .pit.both{background:var(--both);} .pit.info{background:var(--info); opacity:.85;}
   .pit.hard::before{background:var(--hard); opacity:.85;}
   .pit.hard{font-weight:700;}
+  .pit.cont{opacity:.62; font-weight:400;}
   .pit.done{filter:grayscale(1); opacity:.55; text-decoration:line-through;}
   .pit.done::after{content:"✓"; position:absolute; right:4px; bottom:2px;
     color:#1d7a1d; font-size:18px; text-decoration:none;}
@@ -72,6 +73,7 @@
   #card.M{background:var(--m);} #card.both{background:var(--both);} #card.info{background:var(--info);}
   #card h2{margin:0 0 6px; font-size:22px;}
   #card .row{margin:6px 0; font-size:16px;}
+  #card .row.note{font-size:17px; line-height:1.5; margin:12px 0; white-space:pre-line;}
   #card .do{background:rgba(255,255,255,.6); border-left:4px solid var(--ink);
     padding:8px 10px; border-radius:2px;}
   #card .meta{font-size:13px; opacity:.7;}
@@ -273,7 +275,18 @@ function render(){
   const grid=document.getElementById("grid"); grid.innerHTML="";
   const [sy,sm]=(DATA.start_month||"2026-08").split("-").map(Number);
   const byDate={};
-  for(const it of DATA.items){(byDate[it.date]=byDate[it.date]||[]).push(it);}
+  /* an item with "end" is a stretch of days (a trip, a holiday week):
+     pin it on every day from date → end, dimmed after the first. */
+  for(const it of DATA.items){
+    const start=it.date, end=it.end||it.date;
+    let cur=start, guard=0;
+    while(guard++<400){
+      (byDate[cur]=byDate[cur]||[]).push(cur===start?it:{...it,_cont:true});
+      if(cur>=end) break;
+      const dd=new Date(cur+"T12:00:00"); dd.setDate(dd.getDate()+1);
+      cur=`${dd.getFullYear()}-${String(dd.getMonth()+1).padStart(2,"0")}-${String(dd.getDate()).padStart(2,"0")}`;
+    }
+  }
   const tod=todayStr();
   for(let k=0;k<(DATA.months||12);k++){
     const y=sy+Math.floor((sm-1+k)/12), m=(sm-1+k)%12+1;
@@ -290,9 +303,9 @@ function render(){
       const pits=cell.querySelector(".pits");
       for(const it of (byDate[ds]||[])){
         const p=document.createElement("div");
-        p.className=`pit ${it.owner}${it.hard?" hard":""}${it.done?" done":""}`;
+        p.className=`pit ${it.owner}${it.hard?" hard":""}${it.done?" done":""}${it._cont?" cont":""}`;
         p.style.transform=`rotate(${(hash(it.id)%7)-3}deg)`;
-        p.textContent=(it.hard?"✱ ":"")+it.title;
+        p.textContent=(it.hard?"✱ ":"")+(it._cont?"↳ ":"")+it.title;
         p.setAttribute("role","button"); p.tabIndex=0;
         p.onclick=()=>openSheet(it);
         p.onkeydown=(e)=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openSheet(it);}};
@@ -310,7 +323,8 @@ function openSheet(it){
   c.className=it.owner;
   c.innerHTML=`
     <h2>${it.hard?"✱ ":""}${it.title}</h2>
-    <div class="row meta">${it.date} · ${({M:"Marco",I:"Inna",both:"both of you",info:"FYI — it just happens"})[it.owner]}${it.hard?" · HARD deadline":""}</div>
+    <div class="row meta">${it.date}${it.end&&it.end!==it.date?` → ${it.end}`:""} · ${({M:"Marco",I:"Inna",both:"both of you",info:"FYI — it just happens"})[it.owner]}${it.hard?" · HARD deadline":""}</div>
+    ${it.note?`<div class="row note">${it.note}</div>`:""}
     ${it.action?`<div class="row do">DO: ${it.action}${it.minutes?` — <b>${it.minutes} min</b>`:""}</div>`:""}
     ${it.stakes?`<div class="row meta">why it matters: ${it.stakes}</div>`:""}
     ${it.blocked_by?`<div class="row meta">⛓ waits for: ${it.blocked_by}</div>`:""}

@@ -3,3 +3,4 @@ data/subscriptions.json
 data/todos.json
 __pycache__/
 .DS_Store
+data/.deployed.sha256

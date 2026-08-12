@@ -31,18 +31,35 @@ launchd/…digest.plist morning-digest template (Mac must be awake)
 ## Data contract (todos.json)
 ```json
 {"id":"kebab-id","title":"short + emoji","owner":"M|I|both|info",
- "date":"YYYY-MM-DD","hard":true,"action":"verb-first, ≤30 min",
- "minutes":30,"stakes":"one line why","blocked_by":"other-id|null","done":false}
+ "date":"YYYY-MM-DD","end":"YYYY-MM-DD","hard":true,"action":"verb-first, ≤30 min",
+ "minutes":30,"note":"plain-language explanation","stakes":"one line why",
+ "blocked_by":"other-id|null","done":false}
 ```
-Rules: every non-info item has an `action` · one owner · `hard` only for external immovable dates · info = things that happen to us (commissions) · NEVER delete done items (grey them). Top-level: `start_month`, `months`, `updated` (use `--touch`).
+Rules: every non-info item has an `action` · one owner · `hard` only for external immovable dates · info = things that happen to us (commissions, holidays, birthdays) · NEVER delete done items (grey them). Top-level: `start_month`, `months`, `updated` (use `--touch`).
+
+**`end` (optional, added 12 Aug — bac-v4):** makes the item a multi-day band. `render()` pins it on every day from `date` → `end`; continuation days get class `cont` (dimmed) and a `↳` prefix. Used for trips and holiday weeks.
+
+**`note` (optional, added 12 Aug — bac-v4):** the long plain-language explanation, shown in the detail sheet above `action`. **House style, set by Marco 12 Aug: write every note as if the reader is 80 years old with early dementia.** Short sentences. No abbreviation without expanding it (RCBE → "the official Portuguese paper showing who really owns a company"). Say who does what, where, and what happens if it is not done. `\n` renders as a line break (`white-space:pre-line`). This field is the reason a post-it can stay a three-word title and still be fully understood.
+
+## Where the facts live (learned the hard way, 12 Aug)
+Before saying "this fact does not exist", search **all three** trees. A session searched only the first and wrongly reported two facts missing that were sitting in the other two:
+1. `/Users/mcsk/_MCSK/_DOCs/_claude/` — the Claude workspace (analyses, sessions, ledger).
+2. **`/Users/mcsk/.claude/projects/*/memory/`** — 18 per-project memory dirs. Inna's date of birth (19 May 1979, legal name Fanta Bocoum) is in `-DOCs-adami/memory/user_profile.md`. Nothing in tree 1 has it.
+3. **`/Users/mcsk/_MCSK/_DOCs/_pt/`, `_DOCs/01_essential-documents/`, etc.** — non-`_claude` domain folders. The official Villora calendar lives in `_pt/school/villora-tracker.md`, NOT in `_financial advisor/`.
+
+Also: `grep -rE` with a long alternation over the whole tree hits ugrep's complexity limit and **exits with an error that looks like "no matches"**. If a search returns nothing, check it actually ran before concluding the fact is absent.
+
+⚠️ **Villora email does not reach the Gmail account connected to Claude** (zero Villora threads there). School mail lands in another mailbox — the same class of capture failure that lost SPPF in July.
 
 ## Session recipes (the "backend")
-- **INJECT** (Marco dictates todos): edit `data/todos.json` → `python3 scripts/validate.py --touch` → commit → deploy (below). Keep titles funny, actions ≤30 min, split anything bigger. `todos.json` is fetched network-first with cache-bust — data changes reach phones WITHOUT touching sw.js.
+- 🚨 **PUBLISHING IS NOT OPTIONAL. `scripts/deploy.sh` ends EVERY session that touched `data/` or the shell.** Editing `todos.json` changes nothing the family can see: the phones read `todos.enc.json` from GitHub Pages. On 12 Aug a session added 29 items, sent pushes about them, and never published — the phones showed the old wall for a day while the notifications described a wall that existed only on the Mac. Pushes come from local plaintext and are NOT evidence that the site updated.
+- **INJECT** (Marco dictates todos): edit `data/todos.json` → **`scripts/deploy.sh`**. That one command validates, stamps, encrypts, commits and pushes, with no prompt (passphrase from Keychain). It no-ops when nothing changed, so running it twice is free. Keep titles funny, actions ≤30 min, split anything bigger. `todos.enc.json` is fetched network-first with cache-bust — data changes reach phones WITHOUT touching sw.js.
 - **SHELL CHANGE** (index.html / sw.js / manifest / icons): bump `const V = "bac-vN"` in `sw.js` in the same commit — the shell is cached cache-first and old versions persist until V changes.
 - **DONE loop:** WhatsApp/share arrives "DONE ✅ <id>" → set `"done": true` → validate --touch → deploy. Optionally `send_push.py --test "🎉 <title> done"`.
 - **NOTIFY:** `--digest` (morning, sends only if something is due today — silence is a feature) · `--tomorrow` (evening preview) · `--item ID` (ad-hoc nudge). Never more than one scheduled ping/day (spec §3).
-- **KEYS (once):** `pip3 install -r requirements.txt` → `python3 scripts/gen_vapid.py`. Status 2026-08-11: **NOT done — pywebpush not installed** (verified: import fails on system Python 3.9.6).
-- **SUBSCRIPTION FILING (once per device):** Inna taps 🔔 in the installed app → shares blob → paste into `data/subscriptions.json` as `[{"name":"inna","sub":<blob>}]`.
+- **KEYS (once):** `pip3 install -r requirements.txt` → `python3 scripts/gen_vapid.py`. Status 2026-08-11 PM: **DONE** — pywebpush importable by `/usr/bin/python3` (the interpreter launchd uses), `data/vapid_private.pem` + `vapid_public.txt` present.
+- **SUBSCRIPTION FILING (once per device):** taps 🔔 in the installed app → shares blob → paste into `data/subscriptions.json` as `[{"name":"inna","sub":<blob>}]`.
+  **The blob is NOT the endpoint URL alone.** A usable `sub` needs `endpoint` + `keys.p256dh` (65 bytes, b64url, starts `B`) + `keys.auth` (16 bytes). Without the keys pywebpush raises `WebPushException("No keys specified in subscription info")` (`pywebpush/__init__.py:219`) — payload encryption per RFC 8291 is impossible. WhatsApp/Messages will happily truncate a pasted blob down to just the URL, which looks plausible and is useless. **Sanity-check every incoming blob for `"keys"` before filing.** Safer channel: AirDrop or a Notes/email paste, not a chat app.
 
 ## Hosting — DECIDED 2026-08-11: PRIVATE via client-side encryption on GitHub Pages
 Marco requires the wall private. Verified fact: GitHub Pages sites are publicly reachable on the internet **even from a private repo**; access-controlled Pages = Enterprise only ([docs](https://docs.github.com/en/pages/getting-started-with-github-pages/creating-a-github-pages-site), [changelog](https://github.blog/changelog/2021-01-21-access-control-for-github-pages/)). Therefore: **publish only ciphertext**; hosting visibility becomes irrelevant.
@@ -57,17 +74,27 @@ Marco requires the wall private. Verified fact: GitHub Pages sites are publicly 
 6. Passphrase rotation: rerun encrypt with new passphrase → all 3 devices re-enter once.
 7. Then: create GitHub repo (public is acceptable — ciphertext), enable Pages, return the link. INJECT/DONE recipes gain the encrypt step; `--touch` then encrypt then push.
 
-Push sending works from Marco's Mac regardless of hosting (pywebpush POSTs to Apple's endpoint). Scheduled digests: launchd (Mac awake at 08:30) or GitHub Actions cron (PEM + subscriptions as repo **Secrets**, never files).
+Push sending works from Marco's Mac regardless of hosting (pywebpush POSTs to Apple's endpoint). Scheduled digests: launchd or GitHub Actions cron (PEM + subscriptions as repo **Secrets**, never files).
+
+**Unattended publishing (12 Aug).** The passphrase lives in the macOS login Keychain (`service bigass-calendar`, `account wall-passphrase`); `encrypt_data.py` reads it via `security find-generic-password`, falling back to a prompt when absent. This does not weaken the design: the threat model is "GitHub Pages is world-readable", and the ciphertext is unchanged — the key simply moved from Marco's head to the Keychain, which is where macOS keeps credentials anyway. Store it once with `security add-generic-password -U -a wall-passphrase -s bigass-calendar -w` (**`-w` last, so `security` prompts and it never enters shell history or `ps`**). Rotating the passphrase = update the Keychain item, re-run `deploy.sh`, all devices retype once.
+
+**Self-heal.** `scripts/morning.sh` (what launchd runs at 08:30) publishes first, then sends the digest — so an unpublished edit reaches the phones the next morning by itself. `deploy.sh` detects change by hashing the *plaintext* into `data/.deployed.sha256`; comparing ciphertext would commit on every run, because each encryption uses a fresh random salt and IV.
+
+**Rejected: launchd `WatchPaths` auto-deploy on file change.** `man launchd.plist` calls it "highly discouraged… entirely possible for modifications to be missed" — a silent-miss mechanism is precisely what this system exists to prevent.
 
 ## iPhone push — platform facts (verified 2026-08-11)
 - Web push on iOS = **only for web apps Added to Home Screen** (manifest standalone ✓), permission must follow a user tap (the 🔔 button ✓). iOS 16.4+. Source: [webkit.org/blog/13878](https://webkit.org/blog/13878/web-push-for-web-apps-on-ios-and-ipados/), [webkit.org/blog/13966](https://webkit.org/blog/13966/webkit-features-in-safari-16-4/).
 - Viewing via plain link works in any browser, no install.
 - iOS 18.4+ adds Declarative Web Push (no SW needed) — [webkit.org/blog/16535](https://webkit.org/blog/16535/meet-declarative-web-push/). We ship classic SW push (works 16.4+); declarative = later option.
 
-## Status 2026-08-11
-- Built: app, SW, manifest, icons, seed data (18 items from ledger backfill, sources in `../_financial advisor/deadline_system/ledger.csv`), all scripts, launchd + Actions templates. Local git repo initialized.
-- Verified: validate.py passes; app renders on localhost (screenshot in session log).
-- NOT done: pip deps · VAPID keys · hosting choice/deploy · Inna's subscription · privacy pass if public hosting.
+## Status 2026-08-11 (PM — push session)
+- **LIVE:** https://mcsikic.github.io/bigass-calendar/ (ciphertext only; remote is SSH `git@github.com:mcsikic/bigass-calendar.git`).
+- Built: app, SW, manifest, icons, seed data (18 items from ledger backfill, sources in `../_financial advisor/deadline_system/ledger.csv`), all scripts, launchd + Actions templates.
+- **Push: WORKING to both phones.** VAPID keys generated; `data/subscriptions.json` holds `marco` + `inna` (Apple endpoints, both key pairs validated 65B/16B); `send_push.py --test` delivered 2/2.
+- **Morning digest: INSTALLED + LOADED.** `~/Library/LaunchAgents/com.mcsk.bigass-digest.plist`, 08:30 daily, log `/tmp/bigass-digest.log`. Verified `launchctl list` → `com.mcsk.bigass-digest`, exit 0. Fires `--digest`, which sends **only if something is due that day**.
+  Correction to the old "Mac must be awake" caveat: `man launchd.plist` (this machine) — *"Unlike cron which skips job invocations when the computer is asleep, launchd will start the job the next time the computer wakes up"*, coalescing missed firings into one. Asleep at 08:30 = digest at wake, not skipped. Powered off all day = no digest that day.
+- Inna's subscription: **filed 11 Aug PM.** First attempt over WhatsApp arrived as the endpoint URL only (no `keys`) and was rejected; the re-send carried the full JSON — same endpoint, keys intact. Lesson kept in SUBSCRIPTION FILING above: chat apps eat the blob, AirDrop/Notes/email don't.
+- NOT done: privacy pass beyond encryption (push payload text is E2E-encrypted in transit, but lock-screen text is visible to whoever holds the phone — keep amounts out of titles).
 - Related system docs: kit + ledger in `../_financial advisor/deadline_system/` (the Numbers/Reminders route — superseded by this app as the wall, still the reminder fallback until push is live).
 
 ## Backlog (earn it after the 30-day scorecard, spec §6)
