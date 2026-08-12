@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <!-- Every hour on the hour: publish the wall if the Mac is ahead of the internet.
+       Silent — no push, no notification. A quiet /tmp/bigass-sync.log means in sync.
+
+       StartCalendarInterval with only Minute set = every hour. Chosen over
+       StartInterval on purpose: per man launchd.plist, StartInterval firings are
+       MISSED when the machine sleeps, while StartCalendarInterval runs at wake. -->
+  <key>Label</key><string>com.mcsk.bigass-sync</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>/Users/mcsk/_MCSK/_DOCs/_claude/_bigass_calendar/scripts/sync.sh</string>
+  </array>
+  <key>StartCalendarInterval</key>
+  <dict><key>Minute</key><integer>0</integer></dict>
+  <key>StandardOutPath</key><string>/tmp/bigass-sync.log</string>
+  <key>StandardErrorPath</key><string>/tmp/bigass-sync.log</string>
+</dict>
+</plist>
