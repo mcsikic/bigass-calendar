@@ -12,4 +12,4 @@ Oxygen is not the issue (drops <1 point). Any gas appliance nearby → never sea
 - Monitor: NDIR CO2 meter with audible alarm (SwitchBot Meter Pro CO2 ~€50, or Aranet4 ~€220 e-ink). Alarm at 1200 ppm. Watch RH ≤60%.
 - Fresh air: from the QUIET side of the home (bedroom door open + window open in a room away from road), or a through-wall heat-recovery unit (Siegenia AEROPAC ~60 m³/h ~20 dB(A); Lunos e² max 38 m³/h).
 - Noise: leaks first (window seals, shutter box "caixa de estore", strap hole), then heavy sealed layers. Curtains = 2–5 dB, ~0 on truck rumble. Real removable gain = rigid panels (board + Tecsound 5 kg/m²) gasketed into the frame.
-- Earplugs: Leroy Merlin PT 3M orange foam 37 dB, 60-pack ~€11. Correct insertion matters most.
+- Earplugs (seen in Leroy Merlin store 20 Oct): 3M E-A-Rsoft FX yellow bell, SNR 37, 5 pairs = first choice; 3M 1100 orange, SNR 35 (2020 EU re-test), 4 pairs + case = side-sleeper backup. Skip earmuffs (Peltor X2A SNR 31 €29.89, Dexter 33 dB €15.59) for sleep. Once a winner is found, buy a 200-pair box online. Correct insertion matters most.
