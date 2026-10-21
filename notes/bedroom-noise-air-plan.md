@@ -19,3 +19,7 @@ Per panel: MDF 12 mm cut to size in store (~9 kg/m²) · 20 mm acoustic foam (Re
 Split the height in two (~10 kg pieces) so they're easy to lift every night. Heavier option: GYPFOR Acoustic 15 mm plasterboard (33.9 kg per 1.2×2.5 m board, ~11 kg/m²), but it crumbles with daily handling.
 Curtain: 2 × Inspire Danae blackout 200×280 on a ceiling track; 30 cm extra length pools on the floor = seal. Self-adhesive Velcro (or sew-on from a haberdashery) on the side edges to the wall.
 Shutter box: cork board inside + foam tape on the lid + brush guide for the strap slot. Door bottom: slide-on double draught stopper.
+
+## Result 21 Oct 2026: earplugs solved it
+Marco + wife slept with the 3M foam plugs and the bedroom door ajar: heard nothing, no ear pain. Window panels and curtain are ON HOLD (likely not needed). The door ajar also handles fresh air (CO2).
+Next: buy a 200-pair bulk box of the winning plug · vibrating alarm (a plugged ear may not hear a smoke alarm) · fresh pair every 1–3 nights · CO2 meter still useful as a check.
