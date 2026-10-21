@@ -22,3 +22,11 @@ Deco is MESH, not an extender. It cannot join MEO's Wi-Fi.
 
 ## Light colours
 yellow = booting/resetting · pulsing blue = ready for setup · solid blue = setting up · solid white = OK · pulsing red = too far from Deco #1 · solid red = no internet
+
+## Status 20–21 Oct 2026
+- House: garage (no Ethernet) · floor 0 with the MEO box · floor 1. A wall Ethernet run links floor 0 and floor 1.
+- Recommended layout: main Deco next to the MEO box (cable from MEO LAN) → cable from the main Deco's OTHER port into the floor-0 wall socket → Deco #2 on floor 1 (wired link between the Decos; the app shows "Ethernet"). Router mode, Wi-Fi name different from MEO's.
+- Rejected: main Deco on floor 1 + Deco #2 in the garage (two concrete floors = weak wireless link).
+- NEXT: speed test in the garage (fast.com). If weak, Marco's pick is a powerline adapter pair (~€40–60) → Deco in the garage.
+  ⚠️ Powerline only works if the garage is on the home's own electricity meter, not the building's shared supply.
+  Fallbacks: move the main Deco nearer the garage with a 10–15 m flat cable, or a 3rd Deco X10 at the garage door or bottom of the stairs.
